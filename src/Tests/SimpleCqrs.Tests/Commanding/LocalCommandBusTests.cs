@@ -91,7 +91,9 @@ namespace SimpleCqrs.Core.Tests.Commanding
         [TestMethod]
         public void CommandHandlerThatImplementsTwoHandlersAreCalledWhenHandlerTypeIsInTypeCatalog()
         {
-            mocker.GetMock<ITypeCatalog>()
+			serviceLocator.ResolveFunc = Activator.CreateInstance;
+
+			mocker.GetMock<ITypeCatalog>()
                 .Setup(typeCatalog => typeCatalog.GetGenericInterfaceImplementations(typeof(IHandleCommands<>)))
                 .Returns(new[] {typeof(HandlerForTwoCommands)});
 

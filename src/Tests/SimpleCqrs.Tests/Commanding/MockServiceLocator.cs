@@ -46,7 +46,7 @@ namespace SimpleCqrs.Core.Tests.Commanding
             return mock.Object;
         }
 
-        public IList<T> ResolveServices<T>() where T : class
+        public IEnumerable<T> ResolveServices<T>() where T : class
         {
             throw new NotImplementedException();
         }

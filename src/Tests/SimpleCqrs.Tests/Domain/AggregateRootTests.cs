@@ -239,7 +239,7 @@ namespace SimpleCqrs.Core.Tests.Domain
 
     public class MyAggregateRoot : AggregateRoot
     {
-        private int count;
+        //private int count;
 
         public MyAggregateRoot()
         {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using SimpleCqrs.Eventing;
 
@@ -54,6 +55,25 @@ namespace SimpleCqrs.Domain
 
             SaveSnapshot(aggregateRoot);
         }
+
+		public virtual void Save(IEnumerable<AggregateRoot> aggregateRoots)
+		{
+			var roots = aggregateRoots.ToList();
+			var domainEvents = new List<DomainEvent>();
+			foreach (var aggregateRoot in roots)
+			{
+				domainEvents.AddRange(aggregateRoot.UncommittedEvents);
+			}
+
+			eventStore.Insert(domainEvents);
+			eventBus.PublishEvents(domainEvents);
+
+			foreach (var aggregateRoot in roots)
+			{
+				aggregateRoot.CommitEvents();
+				SaveSnapshot(aggregateRoot);
+			}
+		}
 
         private void SaveSnapshot(AggregateRoot aggregateRoot)
         {

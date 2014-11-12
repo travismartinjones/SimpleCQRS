@@ -29,7 +29,7 @@ namespace SimpleCqrs
         T Resolve<T>() where T : class;
         T Resolve<T>(string key) where T : class;
         object Resolve(Type type);
-        IList<T> ResolveServices<T>() where T : class;
+        IEnumerable<T> ResolveServices<T>() where T : class;
         void Register<TInterface>(Type implType) where TInterface : class;
         void Register<TInterface, TImplementation>() where TImplementation : class, TInterface;
         void Register<TInterface, TImplementation>(string key) where TImplementation : class, TInterface;

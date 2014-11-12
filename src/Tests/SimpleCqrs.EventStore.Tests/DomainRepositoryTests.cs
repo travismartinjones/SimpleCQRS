@@ -5,7 +5,7 @@ using AutoMoq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SimpleCqrs.Domain;
-using SimpleCqrs.Events;
+using SimpleCqrs.Eventing;
 
 namespace SimpleCqrs.EventStore.Tests
 {

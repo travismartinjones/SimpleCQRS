@@ -147,7 +147,7 @@ namespace SimpleCqrs.Core.Tests.Events
             return ResolveFunc(type);
         }
 
-        public IList<T> ResolveServices<T>() where T : class
+        public IEnumerable<T> ResolveServices<T>() where T : class
         {
             throw new NotImplementedException();
         }

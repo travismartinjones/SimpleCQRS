@@ -90,7 +90,7 @@ namespace SimpleCqrs.Unity
             }
         }
 
-        public IList<T> ResolveServices<T>() where T : class
+		public IEnumerable<T> ResolveServices<T>() where T : class
         {
             var services = Container.ResolveAll<T>();
             return new List<T>(services);

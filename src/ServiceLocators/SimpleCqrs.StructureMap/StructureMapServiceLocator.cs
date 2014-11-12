@@ -6,16 +6,20 @@ namespace SimpleCqrs.StructureMap
 {
 	public class StructureMapServiceLocator : IServiceLocator
 	{
-		private static bool _isDisposing;
-
-		public StructureMapServiceLocator() : this(ObjectFactory.Container) {}
-
-		public StructureMapServiceLocator(IContainer container)
+		public static void SetTheContainer(IContainer container)
 		{
 			Container = container;
 		}
 
-		public IContainer Container { private set; get; }
+		private static bool _isDisposing;
+
+		public StructureMapServiceLocator()
+		{
+			if(Container == null)
+				throw new NullReferenceException("The Container should already be set.");
+		}
+
+		private static IContainer Container { set; get; }
 
 		public T Resolve<T>() where T : class
 		{
@@ -53,7 +57,7 @@ namespace SimpleCqrs.StructureMap
 			}
 		}
 
-		public IList<T> ResolveServices<T>() where T : class
+		public IEnumerable<T> ResolveServices<T>() where T : class
 		{
 			return Container.GetAllInstances<T>();
 		}
@@ -95,7 +99,8 @@ namespace SimpleCqrs.StructureMap
 
 		public void Register<TInterface>(Func<TInterface> factoryMethod) where TInterface : class
 		{
-			Container.Configure(x => x.For<TInterface>().Use(factoryMethod));
+			//Container.Configure(x => x.For<TInterface>().Use(factoryMethod));
+			Container.Configure(x => x.For<TInterface>().Use(ctx => factoryMethod()));
 		}
 
 		public void Release(object instance)
