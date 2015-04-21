@@ -1,0 +1,19 @@
+﻿<?xml version="1.0"?>
+<package >
+  <metadata>
+	<id>HighIronRanch.SimpleCqrs</id>
+	<version>$version$</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>Stephen Balkum</owners>
+	<licenseUrl>https://github.com/sbalkum/SimpleCQRS/blob/master/ReadMe.txt</licenseUrl>
+	<projectUrl>https://github.com/sbalkum/SimpleCQRS</projectUrl>
+	<requireLicenseAcceptance>false</requireLicenseAcceptance>
+	<description>This is a fork of https://github.com/tyronegroves/SimpleCQRS created to update the dependencies. No functional changes have been made.</description>
+	<summary>$description$</summary>
+	<copyright>$copyright$</copyright>
+  </metadata>
+  <files>
+	<file src="bin\Release\SimpleCqrs.pdb" target="lib\net40\SimpleCqrs.pdb" />
+  </files>
+</package>

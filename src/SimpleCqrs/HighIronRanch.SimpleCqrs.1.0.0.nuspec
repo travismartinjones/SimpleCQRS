@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>HighIronRanch.SimpleCqrs</id>
+        <version>1.0.0</version>
+        <authors>Tyrone Groves,Darren Cauthen</authors>
+        <owners>Stephen Balkum</owners>
+        <licenseUrl>https://github.com/sbalkum/SimpleCQRS/blob/master/ReadMe.txt</licenseUrl>
+        <projectUrl>https://github.com/sbalkum/SimpleCQRS</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>This is a fork of https://github.com/tyronegroves/SimpleCQRS created to update the dependencies. No functional changes have been made.</description>
+        <summary>A framework for building applications using the CQRS and Event Sourcing patterns. Forked to update dependencies.</summary>
+        <releaseNotes>Updated to latest versions of nuget packages: AutoMoq, CommonServiceLocator, Moq, StructureMap, Unity</releaseNotes>
+        <copyright>2011 Tyrone Groves</copyright>
+    </metadata>
+    <files>
+        <file src="lib\net40\SimpleCqrs.dll" target="lib\net40\SimpleCqrs.dll" />
+        <file src="lib\net40\SimpleCqrs.pdb" target="lib\net40\SimpleCqrs.pdb" />
+    </files>
+</package>
