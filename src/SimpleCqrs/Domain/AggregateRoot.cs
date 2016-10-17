@@ -35,7 +35,7 @@ namespace SimpleCqrs.Domain
             domainEvent.Sequence = ++LastEventSequence;
             ApplyEventToInternalState(domainEvent);
             domainEvent.AggregateRootId = Id;
-            domainEvent.EventDate = DateTime.Now;
+            domainEvent.EventDate = DateTime.UtcNow;
             
             EventModifier.Modify(domainEvent);
 
