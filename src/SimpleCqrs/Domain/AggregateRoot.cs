@@ -42,10 +42,13 @@ namespace SimpleCqrs.Domain
             uncommittedEvents.Enqueue(domainEvent);
         }
 
+        protected virtual void OnCommitEvents() {}
+
         public void CommitEvents()
         {
             uncommittedEvents.Clear();
             entities.ForEach(entity => entity.CommitEvents());
+            OnCommitEvents();
         }
 
         public void RegisterEntity(Entity entity)
