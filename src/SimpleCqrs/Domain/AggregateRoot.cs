@@ -22,7 +22,8 @@ namespace SimpleCqrs.Domain
 
         public void LoadFromHistoricalEvents(params DomainEvent[] domainEvents)
         {
-            if(domainEvents.Length == 0) return;
+            if (domainEvents == null) return;
+            if (domainEvents.Length == 0) return;
 
             var domainEventList = domainEvents.OrderBy(domainEvent => domainEvent.Sequence).ToList();
             LastEventSequence = domainEventList.Last().Sequence;
@@ -64,6 +65,7 @@ namespace SimpleCqrs.Domain
             var aggregateRootType = GetType();
 
         	var eventHandlerMethodName = GetEventHandlerMethodName(domainEventTypeName);
+            if (string.IsNullOrEmpty(eventHandlerMethodName)) return;
         	var methodInfo = aggregateRootType.GetMethod(eventHandlerMethodName,
                                                          BindingFlags.Instance | BindingFlags.Public |
                                                          BindingFlags.NonPublic, null, new[] {domainEventType}, null);
@@ -89,6 +91,7 @@ namespace SimpleCqrs.Domain
 
         private static string GetEventHandlerMethodName(string domainEventTypeName)
         {
+            if (string.IsNullOrEmpty(domainEventTypeName)) return null;
             var eventIndex = domainEventTypeName.LastIndexOf("Event");
             return "On" + domainEventTypeName.Remove(eventIndex, 5);
         }
