@@ -36,8 +36,11 @@ namespace SimpleCqrs.Domain
             domainEvent.Sequence = ++LastEventSequence;
             ApplyEventToInternalState(domainEvent);
             domainEvent.AggregateRootId = Id;
-            domainEvent.EventDate = DateTime.UtcNow;
-            
+
+            // allow the client to specify the event date,
+            // otherwise default to utcnow
+            domainEvent.EventDate = domainEvent.EventDate == default(DateTime) ? DateTime.UtcNow : domainEvent.EventDate.ToUniversalTime();
+
             EventModifier.Modify(domainEvent);
 
             uncommittedEvents.Enqueue(domainEvent);
