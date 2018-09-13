@@ -12,3 +12,4 @@ bin
 *.gpState
 TestResults
 [Bb]inaries
+src/.vs/
