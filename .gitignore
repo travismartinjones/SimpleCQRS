@@ -13,3 +13,6 @@ bin
 TestResults
 [Bb]inaries
 src/.vs/
+*.nupkg
+src/SimpleCqrs/publish-nuget.bat
+src/Packages/

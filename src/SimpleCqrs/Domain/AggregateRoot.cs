@@ -33,13 +33,13 @@ namespace SimpleCqrs.Domain
 
         public void Apply(DomainEvent domainEvent)
         {
-            domainEvent.Sequence = ++LastEventSequence;
-            domainEvent.AggregateRootId = Id;
+            domainEvent.Sequence = ++LastEventSequence;            
 
             // allow the client to specify the event date,
             // otherwise default to utcnow
             domainEvent.EventDate = domainEvent.EventDate == default(DateTime) ? DateTime.UtcNow : domainEvent.EventDate.ToUniversalTime();
-            ApplyEventToInternalState(domainEvent);            
+            ApplyEventToInternalState(domainEvent);    
+            domainEvent.AggregateRootId = Id;
 
             EventModifier.Modify(domainEvent);
 
