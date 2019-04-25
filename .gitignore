@@ -16,3 +16,4 @@ src/.vs/
 *.nupkg
 src/SimpleCqrs/publish-nuget.bat
 src/Packages/
+src/ServiceLocators/SimpleCqrs.StructureMap/publish-nuget.bat
