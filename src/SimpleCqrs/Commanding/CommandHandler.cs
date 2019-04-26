@@ -10,7 +10,7 @@ namespace SimpleCqrs.Commanding
         async Task IHandleCommands<TCommand>.Handle(ICommandHandlingContext<TCommand> handlingContext)
         {
             context = handlingContext;
-            await Handle(handlingContext.Command);
+            await Handle(handlingContext.Command).ConfigureAwait(false);
         }
 
         public abstract Task Handle(TCommand command);

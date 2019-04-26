@@ -30,7 +30,7 @@ namespace SimpleCqrs.Eventing
         public async Task PublishEvents(IEnumerable<DomainEvent> domainEvents)
         {
             foreach(var domainEvent in domainEvents)
-                await PublishEvent(domainEvent);
+                await PublishEvent(domainEvent).ConfigureAwait(false);
         }
 
         private async Task BuildEventInvokers(IEnumerable<Type> eventHandlerTypes)

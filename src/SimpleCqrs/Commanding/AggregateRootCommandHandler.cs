@@ -22,14 +22,14 @@ namespace SimpleCqrs.Commanding
         {
             var command = handlingContext.Command;
 
-            var aggregateRoot = await domainRepository.GetById<TAggregateRoot>(command.AggregateRootId);
+            var aggregateRoot = await domainRepository.GetById<TAggregateRoot>(command.AggregateRootId).ConfigureAwait(false);
 
             ValidateTheCommand(handlingContext, command, aggregateRoot);
 
             Handle(command, aggregateRoot);
 
             if(aggregateRoot != null)
-                await domainRepository.Save(aggregateRoot);
+                await domainRepository.Save(aggregateRoot).ConfigureAwait(false);
         }
 
         private void ValidateTheCommand(ICommandHandlingContext<TCommand> handlingContext, TCommand command, TAggregateRoot aggregateRoot)

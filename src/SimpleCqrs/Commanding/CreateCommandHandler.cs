@@ -9,11 +9,11 @@ namespace SimpleCqrs.Commanding
         {
             var aggregateRoot = CreateAggregateRoot(command);
 
-            await Handle(command, aggregateRoot);
+            await Handle(command, aggregateRoot).ConfigureAwait(false);
 
             var domainRepository = ServiceLocator.Current.Resolve<IDomainRepository>();
 
-            await domainRepository.Save(aggregateRoot);
+            await domainRepository.Save(aggregateRoot).ConfigureAwait(false);
         }
 
         public abstract AggregateRoot CreateAggregateRoot(TCommand command);
