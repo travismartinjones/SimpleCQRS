@@ -1,14 +1,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SimpleCqrs.Domain
 {
     public interface IDomainRepository
     {
-        TAggregateRoot GetById<TAggregateRoot>(Guid aggregateRootId) where TAggregateRoot : AggregateRoot, new();
-        TAggregateRoot GetExistingById<TAggregateRoot>(Guid aggregateRootId) where TAggregateRoot : AggregateRoot, new();
-        void Save(AggregateRoot aggregateRoot);
-		void Save(IEnumerable<AggregateRoot> aggregateRoots);
+        Task<TAggregateRoot> GetById<TAggregateRoot>(Guid aggregateRootId) where TAggregateRoot : AggregateRoot, new();
+        Task<TAggregateRoot> GetExistingById<TAggregateRoot>(Guid aggregateRootId) where TAggregateRoot : AggregateRoot, new();
+        Task Save(AggregateRoot aggregateRoot);
+		Task Save(IEnumerable<AggregateRoot> aggregateRoots);
 	}
 }

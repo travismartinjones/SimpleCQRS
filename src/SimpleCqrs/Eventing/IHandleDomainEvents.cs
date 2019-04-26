@@ -1,7 +1,9 @@
-﻿namespace SimpleCqrs.Eventing
+﻿using System.Threading.Tasks;
+
+namespace SimpleCqrs.Eventing
 {
     public interface IHandleDomainEvents<in TDomainEvent> where TDomainEvent : DomainEvent
     {
-        void Handle(TDomainEvent domainEvent);
+        Task Handle(TDomainEvent domainEvent);
     }
 }

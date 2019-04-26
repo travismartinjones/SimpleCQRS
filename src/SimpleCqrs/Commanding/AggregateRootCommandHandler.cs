@@ -1,4 +1,5 @@
-﻿using SimpleCqrs.Domain;
+﻿using System.Threading.Tasks;
+using SimpleCqrs.Domain;
 
 namespace SimpleCqrs.Commanding
 {
@@ -17,18 +18,18 @@ namespace SimpleCqrs.Commanding
             this.domainRepository = domainRepository;
         }
 
-        void IHandleCommands<TCommand>.Handle(ICommandHandlingContext<TCommand> handlingContext)
+        async Task IHandleCommands<TCommand>.Handle(ICommandHandlingContext<TCommand> handlingContext)
         {
             var command = handlingContext.Command;
 
-            var aggregateRoot = domainRepository.GetById<TAggregateRoot>(command.AggregateRootId);
+            var aggregateRoot = await domainRepository.GetById<TAggregateRoot>(command.AggregateRootId);
 
             ValidateTheCommand(handlingContext, command, aggregateRoot);
 
             Handle(command, aggregateRoot);
 
             if(aggregateRoot != null)
-                domainRepository.Save(aggregateRoot);
+                await domainRepository.Save(aggregateRoot);
         }
 
         private void ValidateTheCommand(ICommandHandlingContext<TCommand> handlingContext, TCommand command, TAggregateRoot aggregateRoot)

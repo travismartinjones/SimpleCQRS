@@ -1,7 +1,9 @@
-﻿namespace SimpleCqrs.Commanding
+﻿using System.Threading.Tasks;
+
+namespace SimpleCqrs.Commanding
 {
     public interface IHandleCommands<in TCommand> where TCommand : ICommand
     {
-        void Handle(ICommandHandlingContext<TCommand> handlingContext);
+        Task Handle(ICommandHandlingContext<TCommand> handlingContext);
     }
 }

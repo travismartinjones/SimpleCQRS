@@ -1,16 +1,17 @@
 ﻿using System;
+using System.Threading.Tasks;
 using SimpleCqrs.Domain;
 
 namespace SimpleCqrs.Eventing
 {
     public class NullSnapshotStore : ISnapshotStore
     {
-        public Snapshot GetSnapshot(Guid aggregateRootId)
+        public async Task<Snapshot> GetSnapshot(Guid aggregateRootId)
         {
             return null;
         }
 
-        public void SaveSnapshot<TSnapshot>(TSnapshot snapshot) where TSnapshot : Snapshot
+        public async Task SaveSnapshot<TSnapshot>(TSnapshot snapshot) where TSnapshot : Snapshot
         {
         }
     }

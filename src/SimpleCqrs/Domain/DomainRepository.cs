@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using SimpleCqrs.Eventing;
 
 namespace SimpleCqrs.Domain
@@ -18,12 +19,12 @@ namespace SimpleCqrs.Domain
             this.eventBus = eventBus;
         }
 
-        public virtual TAggregateRoot GetById<TAggregateRoot>(Guid aggregateRootId) where TAggregateRoot : AggregateRoot, new()
+        public virtual async Task<TAggregateRoot> GetById<TAggregateRoot>(Guid aggregateRootId) where TAggregateRoot : AggregateRoot, new()
         {
             var aggregateRoot = new TAggregateRoot();
-            var snapshot = GetSnapshotFromSnapshotStore(aggregateRootId);
+            var snapshot = await GetSnapshotFromSnapshotStore(aggregateRootId);
             var lastEventSequence = snapshot == null || !(aggregateRoot is ISnapshotOriginator) ? 0 : snapshot.LastEventSequence;
-            var domainEvents = eventStore.GetEvents(aggregateRootId, lastEventSequence).ToArray();
+            var domainEvents = (await eventStore.GetEvents(aggregateRootId, lastEventSequence)).ToArray();
 
             if (lastEventSequence == 0 && domainEvents.Length == 0)
                 return null;
@@ -34,9 +35,9 @@ namespace SimpleCqrs.Domain
             return aggregateRoot;
         }
 
-        public virtual TAggregateRoot GetExistingById<TAggregateRoot>(Guid aggregateRootId) where TAggregateRoot : AggregateRoot, new()
+        public virtual async Task<TAggregateRoot> GetExistingById<TAggregateRoot>(Guid aggregateRootId) where TAggregateRoot : AggregateRoot, new()
         {
-            var aggregateRoot = GetById<TAggregateRoot>(aggregateRootId);
+            var aggregateRoot = await GetById<TAggregateRoot>(aggregateRootId);
 
             if(aggregateRoot == null)
                 throw new AggregateRootNotFoundException(aggregateRootId, typeof(TAggregateRoot));
@@ -44,19 +45,19 @@ namespace SimpleCqrs.Domain
             return aggregateRoot;
         }
 
-        public virtual void Save(AggregateRoot aggregateRoot)
+        public virtual async Task Save(AggregateRoot aggregateRoot)
         {
             var domainEvents = aggregateRoot.UncommittedEvents;
 
-            eventStore.Insert(domainEvents);
-            eventBus.PublishEvents(domainEvents);
+            await eventStore.Insert(domainEvents);
+            await eventBus.PublishEvents(domainEvents);
             
             aggregateRoot.CommitEvents();
 
-            SaveSnapshot(aggregateRoot);
+            await SaveSnapshot(aggregateRoot);
         }
 
-		public virtual void Save(IEnumerable<AggregateRoot> aggregateRoots)
+		public virtual async Task Save(IEnumerable<AggregateRoot> aggregateRoots)
 		{
 			var roots = aggregateRoots.ToList();
 			var domainEvents = new List<DomainEvent>();
@@ -65,24 +66,24 @@ namespace SimpleCqrs.Domain
 				domainEvents.AddRange(aggregateRoot.UncommittedEvents);
 			}
 
-			eventStore.Insert(domainEvents);
-			eventBus.PublishEvents(domainEvents);
+			await eventStore.Insert(domainEvents);
+			await eventBus.PublishEvents(domainEvents);
 
 			foreach (var aggregateRoot in roots)
 			{
 				aggregateRoot.CommitEvents();
-				SaveSnapshot(aggregateRoot);
+				await SaveSnapshot(aggregateRoot);
 			}
 		}
 
-        private void SaveSnapshot(AggregateRoot aggregateRoot)
+        private async Task SaveSnapshot(AggregateRoot aggregateRoot)
         {
             var snapshotOriginator = aggregateRoot as ISnapshotOriginator;
             
             if(snapshotOriginator == null)
                 return;
 
-            var previousSnapshot = snapshotStore.GetSnapshot(aggregateRoot.Id);
+            var previousSnapshot = await snapshotStore.GetSnapshot(aggregateRoot.Id);
 
             if (!snapshotOriginator.ShouldTakeSnapshot(previousSnapshot)) return;
 
@@ -90,7 +91,7 @@ namespace SimpleCqrs.Domain
             snapshot.AggregateRootId = aggregateRoot.Id;
             snapshot.LastEventSequence = aggregateRoot.LastEventSequence;
 
-            snapshotStore.SaveSnapshot(snapshot);
+            await snapshotStore.SaveSnapshot(snapshot);
         }
 
         private static void LoadSnapshot(AggregateRoot aggregateRoot, Snapshot snapshot)
@@ -104,9 +105,9 @@ namespace SimpleCqrs.Domain
             }
         }
 
-        private Snapshot GetSnapshotFromSnapshotStore(Guid aggregateRootId)
+        private async Task<Snapshot> GetSnapshotFromSnapshotStore(Guid aggregateRootId)
         {
-            return snapshotStore.GetSnapshot(aggregateRootId);
+            return await snapshotStore.GetSnapshot(aggregateRootId);
         }
     }
 }

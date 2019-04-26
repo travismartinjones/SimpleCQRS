@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SimpleCqrs.Eventing
 {
     public interface IEventBus
     {
-        void PublishEvent(DomainEvent domainEvent);
-        void PublishEvents(IEnumerable<DomainEvent> domainEvents);
+        Task PublishEvent(DomainEvent domainEvent);
+        Task PublishEvents(IEnumerable<DomainEvent> domainEvents);
     }
 }

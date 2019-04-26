@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Threading.Tasks;
 using SimpleCqrs.Domain;
 
 namespace SimpleCqrs.Eventing
 {
     public interface ISnapshotStore
     {
-        Snapshot GetSnapshot(Guid aggregateRootId);
-        void SaveSnapshot<TSnapshot>(TSnapshot snapshot) where TSnapshot : Snapshot;
+        Task<Snapshot> GetSnapshot(Guid aggregateRootId);
+        Task SaveSnapshot<TSnapshot>(TSnapshot snapshot) where TSnapshot : Snapshot;
     }
 }

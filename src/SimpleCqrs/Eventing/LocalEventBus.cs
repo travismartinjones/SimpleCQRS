@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace SimpleCqrs.Eventing
 {
@@ -13,10 +14,10 @@ namespace SimpleCqrs.Eventing
         public LocalEventBus(IEnumerable<Type> eventHandlerTypes, IDomainEventHandlerFactory eventHandlerBuilder)
         {
             this.eventHandlerBuilder = eventHandlerBuilder;
-            BuildEventInvokers(eventHandlerTypes);
+            BuildEventInvokers(eventHandlerTypes).Wait();
         }
 
-        public void PublishEvent(DomainEvent domainEvent)
+        public async Task PublishEvent(DomainEvent domainEvent)
         {
             var domainEventType = domainEvent.GetType();
             var invokers = (from entry in eventHandlerInvokers
@@ -26,21 +27,20 @@ namespace SimpleCqrs.Eventing
             invokers.ForEach(i => i.Publish(domainEvent));
         }
 
-        public void PublishEvents(IEnumerable<DomainEvent> domainEvents)
+        public async Task PublishEvents(IEnumerable<DomainEvent> domainEvents)
         {
             foreach(var domainEvent in domainEvents)
-                PublishEvent(domainEvent);
+                await PublishEvent(domainEvent);
         }
 
-        private void BuildEventInvokers(IEnumerable<Type> eventHandlerTypes)
+        private async Task BuildEventInvokers(IEnumerable<Type> eventHandlerTypes)
         {
             eventHandlerInvokers = new Dictionary<Type, EventHandlerInvoker>();
             foreach(var eventHandlerType in eventHandlerTypes)
             {
                 foreach(var domainEventType in GetDomainEventTypes(eventHandlerType))
                 {
-                    EventHandlerInvoker eventInvoker;
-                    if(!eventHandlerInvokers.TryGetValue(domainEventType, out eventInvoker))
+                    if(!eventHandlerInvokers.TryGetValue(domainEventType, out var eventInvoker))
                         eventInvoker = new EventHandlerInvoker(eventHandlerBuilder, domainEventType);
 
                     eventInvoker.AddEventHandlerType(eventHandlerType);
@@ -77,6 +77,7 @@ namespace SimpleCqrs.Eventing
             public void Publish(DomainEvent domainEvent)
             {
                 var handleMethod = typeof(IHandleDomainEvents<>).MakeGenericType(domainEventType).GetMethod("Handle");
+                if (handleMethod == null) return;
                 foreach(var eventHandlerType in eventHandlerTypes)
                 {
                     var eventHandler = eventHandlerFactory.Create(eventHandlerType);

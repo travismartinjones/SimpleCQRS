@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace SimpleCqrs.Commanding
 {
@@ -6,13 +7,13 @@ namespace SimpleCqrs.Commanding
     {
         private ICommandHandlingContext<TCommand> context;
 
-        void IHandleCommands<TCommand>.Handle(ICommandHandlingContext<TCommand> handlingContext)
+        async Task IHandleCommands<TCommand>.Handle(ICommandHandlingContext<TCommand> handlingContext)
         {
             context = handlingContext;
-            Handle(handlingContext.Command);
+            await Handle(handlingContext.Command);
         }
 
-        public abstract void Handle(TCommand command);
+        public abstract Task Handle(TCommand command);
 
         protected void Return(int value)
         {
