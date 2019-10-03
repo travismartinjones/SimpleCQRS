@@ -7,5 +7,6 @@ namespace SimpleCqrs.Eventing
     {
         Task PublishEvent(DomainEvent domainEvent);
         Task PublishEvents(IEnumerable<DomainEvent> domainEvents);
+        bool IsEventTypeHandled(DomainEvent domainEvent);
     }
 }

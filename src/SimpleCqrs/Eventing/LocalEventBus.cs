@@ -33,6 +33,11 @@ namespace SimpleCqrs.Eventing
                 await PublishEvent(domainEvent).ConfigureAwait(false);
         }
 
+        public bool IsEventTypeHandled(DomainEvent domainEvent)
+        {
+            return true;
+        }
+
         private async Task BuildEventInvokers(IEnumerable<Type> eventHandlerTypes)
         {
             eventHandlerInvokers = new Dictionary<Type, EventHandlerInvoker>();
