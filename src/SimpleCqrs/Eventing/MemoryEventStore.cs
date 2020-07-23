@@ -37,6 +37,16 @@ namespace SimpleCqrs.Eventing
                     select domainEvent);
         }
 
+        public async Task<IEnumerable<DomainEvent>> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes, Guid aggregateRootId, DateTime startDate, DateTime endDate)
+        {
+            return (from domainEvent in storedDomainEvents
+                where domainEvent.EventDate >= startDate
+                where domainEvent.EventDate <= endDate
+                where domainEvent.AggregateRootId == aggregateRootId
+                where domainEventTypes.Contains(domainEvent.GetType())
+                select domainEvent);
+        }
+
         public async Task<IEnumerable<DomainEvent>> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes, DateTime startDate, DateTime endDate)
         {
             return (from domainEvent in storedDomainEvents
