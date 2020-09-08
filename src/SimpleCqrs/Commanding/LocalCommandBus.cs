@@ -30,6 +30,11 @@ namespace SimpleCqrs.Commanding
             commandHandler.Send(command);
         }
 
+        public bool IsCommandTypeHandled(ICommand command)
+        {
+            return true;
+        }
+
         private CommandHandlerInvoker GetTheCommandHandler(ICommand command)
         {
             CommandHandlerInvoker commandInvoker;

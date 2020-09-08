@@ -4,5 +4,6 @@
     {
         int Execute<TCommand>(TCommand command) where TCommand : ICommand;
         void Send<TCommand>(TCommand command) where TCommand : ICommand;
+        bool IsCommandTypeHandled(ICommand command);
     }
 }

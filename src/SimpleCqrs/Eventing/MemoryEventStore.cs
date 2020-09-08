@@ -17,6 +17,11 @@ namespace SimpleCqrs.Eventing
                     select domainEvent).ToList();
         }
 
+        public async Task Insert(DomainEvent domainEvent)
+        {
+            storedDomainEvents.Add(domainEvent);
+        }
+
         public async Task Insert(IEnumerable<DomainEvent> domainEvents)
         {
             storedDomainEvents.AddRange(domainEvents);

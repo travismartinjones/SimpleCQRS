@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using AutoMoq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -131,7 +132,7 @@ namespace SimpleCqrs.Core.Tests.Commanding
 
     public class MyTestCommandHandler : IHandleCommands<MyTestCommand>
     {
-        public virtual void Handle(ICommandHandlingContext<MyTestCommand> handlingContext)
+        public virtual async Task Handle(ICommandHandlingContext<MyTestCommand> handlingContext)
         {
             handlingContext.Return(handlingContext.Command.ReturnValue);
         }
@@ -139,12 +140,12 @@ namespace SimpleCqrs.Core.Tests.Commanding
 
     public class HandlerForTwoCommands : IHandleCommands<MyTestCommand>, IHandleCommands<MyTest2Command>
     {
-        public void Handle(ICommandHandlingContext<MyTestCommand> handlingContext)
+        public async Task Handle(ICommandHandlingContext<MyTestCommand> handlingContext)
         {
             handlingContext.Return(handlingContext.Command.ReturnValue);
         }
 
-        public void Handle(ICommandHandlingContext<MyTest2Command> handlingContext)
+        public async Task Handle(ICommandHandlingContext<MyTest2Command> handlingContext)
         {
             handlingContext.Return(handlingContext.Command.ReturnValue);
         }

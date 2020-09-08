@@ -6,17 +6,32 @@ using SimpleCqrs.Eventing;
 
 namespace SimpleCqrs.Domain
 {
+    public interface IDurableEventService
+    {
+        Task Deliver(DomainEvent evt);
+    }
+
+    public class EventAlreadyStoredException : Exception {}
+
     public class DomainRepository : IDomainRepository
     {
         private readonly IEventBus eventBus;
+        private readonly IDurableEventService durableEventService;
         private readonly IEventStore eventStore;
         private readonly ISnapshotStore snapshotStore;
 
-        public DomainRepository(IEventStore eventStore, ISnapshotStore snapshotStore, IEventBus eventBus)
+        public DomainRepository(
+            IEventStore eventStore, 
+            ISnapshotStore snapshotStore, 
+            IEventBus eventBus,
+            IDurableEventService durableEventService)
         {
             this.eventStore = eventStore;
             this.snapshotStore = snapshotStore;
             this.eventBus = eventBus;
+            if(durableEventService == null)
+                throw new ArgumentNullException(nameof(durableEventService), "A durable event service must be supplied");
+            this.durableEventService = durableEventService;
         }
 
         public virtual async Task<TAggregateRoot> GetById<TAggregateRoot>(Guid aggregateRootId) where TAggregateRoot : AggregateRoot, new()
@@ -49,9 +64,16 @@ namespace SimpleCqrs.Domain
         {
             var domainEvents = aggregateRoot.UncommittedEvents;
 
-            await eventStore.Insert(domainEvents).ConfigureAwait(false);
-            await eventBus.PublishEvents(domainEvents).ConfigureAwait(false);
-            
+            if (domainEvents.Count > 1)
+            {
+                var correlationId = Guid.NewGuid();
+                foreach (var domainEvent in domainEvents)
+                    domainEvent.SaveCorrelationId = domainEvent.SaveCorrelationId ?? correlationId;
+            }
+
+            foreach (var domainEvent in domainEvents)
+                await durableEventService.Deliver(domainEvent).ConfigureAwait(false);
+
             aggregateRoot.CommitEvents();
 
             await SaveSnapshot(aggregateRoot).ConfigureAwait(false);
@@ -66,15 +88,36 @@ namespace SimpleCqrs.Domain
 				domainEvents.AddRange(aggregateRoot.UncommittedEvents);
 			}
 
-			await eventStore.Insert(domainEvents).ConfigureAwait(false);
-			await eventBus.PublishEvents(domainEvents).ConfigureAwait(false);
+            if (domainEvents.Count > 1)
+            {
+                var correlationId = Guid.NewGuid();
+                foreach (var domainEvent in domainEvents)
+                    domainEvent.SaveCorrelationId = domainEvent.SaveCorrelationId ?? correlationId;
+            }
 
-			foreach (var aggregateRoot in roots)
+            foreach(var domainEvent in domainEvents)
+                await durableEventService.Deliver(domainEvent).ConfigureAwait(false);
+
+            foreach (var aggregateRoot in roots)
 			{
 				aggregateRoot.CommitEvents();
 				await SaveSnapshot(aggregateRoot).ConfigureAwait(false);
 			}
 		}
+
+        public async Task ProcessEvent(DomainEvent evt)
+        {
+            try
+            {
+                await eventStore.Insert(evt).ConfigureAwait(false);
+            }
+            catch (EventAlreadyStoredException)
+            {
+                // ignore if the event already got saved, but it didn't get put onto the bus
+            }
+
+            await eventBus.PublishEvent(evt).ConfigureAwait(false);
+        }
 
         private async Task SaveSnapshot(AggregateRoot aggregateRoot)
         {
