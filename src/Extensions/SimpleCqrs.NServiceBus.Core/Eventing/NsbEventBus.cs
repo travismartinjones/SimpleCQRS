@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using NServiceBus;
 using SimpleCqrs.Eventing;
 
@@ -10,15 +11,20 @@ namespace SimpleCqrs.NServiceBus.Eventing
     {
         private IBus bus;
 
-        public void PublishEvent(DomainEvent domainEvent)
+        public async Task PublishEvent(DomainEvent domainEvent)
         {
             Bus.Publish<IDomainEventMessage>(message => message.DomainEvent = domainEvent);
         }
 
-        public void PublishEvents(IEnumerable<DomainEvent> domainEvents)
+        public async Task PublishEvents(IEnumerable<DomainEvent> domainEvents)
         {
             var domainEventMessages = domainEvents.Select(CreateDomainEventMessage).ToList();
             domainEventMessages.ForEach(message => Bus.Publish(message));
+        }
+
+        public bool IsEventTypeHandled(DomainEvent domainEvent)
+        {
+            return true;
         }
 
         private IBus Bus

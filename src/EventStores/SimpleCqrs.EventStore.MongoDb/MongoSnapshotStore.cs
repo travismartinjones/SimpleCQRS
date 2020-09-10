@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using MongoDB;
 using MongoDB.Configuration;
 using MongoDB.Configuration.Builders;
@@ -23,7 +24,7 @@ namespace SimpleCqrs.EventStore.MongoDb
             database = mongo.GetDatabase("snapshotstore");
         }
 
-        public Snapshot GetSnapshot(Guid aggregateRootId)
+        public async Task<Snapshot> GetSnapshot(Guid aggregateRootId)
         {
             var snapshotsCollection = database.GetCollection<Snapshot>("snapshots").Linq();
             return (from snapshot in snapshotsCollection
@@ -31,7 +32,7 @@ namespace SimpleCqrs.EventStore.MongoDb
                     select snapshot).SingleOrDefault();
         }
 
-        public void SaveSnapshot<TSnapshot>(TSnapshot snapshot) where TSnapshot : Snapshot
+        public async Task SaveSnapshot<TSnapshot>(TSnapshot snapshot) where TSnapshot : Snapshot
         {
             var snapshotsCollection = database.GetCollection<TSnapshot>("snapshots");
             snapshotsCollection.Update(snapshot, new { snapshot.AggregateRootId }, UpdateFlags.Upsert);

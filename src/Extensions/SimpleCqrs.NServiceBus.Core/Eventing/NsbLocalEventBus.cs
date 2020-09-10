@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using log4net;
 using SimpleCqrs.Eventing;
 
@@ -17,7 +18,7 @@ namespace SimpleCqrs.NServiceBus.Eventing
             BuildEventInvokers(eventHandlerTypes);
         }
 
-        public void PublishEvent(DomainEvent domainEvent)
+        public async Task PublishEvent(DomainEvent domainEvent)
         {
             if(!eventHandlerInvokers.ContainsKey(domainEvent.GetType())) return;
 
@@ -25,10 +26,15 @@ namespace SimpleCqrs.NServiceBus.Eventing
             eventHandlerInvoker.Publish(domainEvent);
         }
 
-        public void PublishEvents(IEnumerable<DomainEvent> domainEvents)
+        public async Task PublishEvents(IEnumerable<DomainEvent> domainEvents)
         {
             foreach(var domainEvent in domainEvents)
                 PublishEvent(domainEvent);
+        }
+
+        public bool IsEventTypeHandled(DomainEvent domainEvent)
+        {
+            return true;
         }
 
         private void BuildEventInvokers(IEnumerable<Type> eventHandlerTypes)

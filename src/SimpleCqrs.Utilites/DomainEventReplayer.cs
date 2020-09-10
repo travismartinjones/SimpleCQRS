@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using SimpleCqrs.Eventing;
 
 namespace SimpleCqrs.Utilites
@@ -14,12 +15,12 @@ namespace SimpleCqrs.Utilites
             this.runtime = runtime;
         }
 
-        public void ReplayEventsForHandlerType(Type handlerType)
+        public async Task ReplayEventsForHandlerType(Type handlerType)
         {
-            ReplayEventsForHandlerType(handlerType, DateTime.MinValue, DateTime.MaxValue);
+            await ReplayEventsForHandlerType(handlerType, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
         }
 
-        public void ReplayEventsForHandlerType(Type handlerType, Guid aggregateRootId)
+        public async Task ReplayEventsForHandlerType(Type handlerType, Guid aggregateRootId)
         {
             runtime.Start();
 
@@ -27,13 +28,13 @@ namespace SimpleCqrs.Utilites
             var eventStore = serviceLocator.Resolve<IEventStore>();
             var domainEventTypes = GetDomainEventTypesHandledByHandler(handlerType);
 
-            var domainEvents = eventStore.GetEventsByEventTypes(domainEventTypes, aggregateRootId);
+            var domainEvents = await eventStore.GetEventsByEventTypes(domainEventTypes, aggregateRootId).ConfigureAwait(false);
             var eventBus = new LocalEventBus(new[] { handlerType }, new DomainEventHandlerFactory(serviceLocator));
 
-            eventBus.PublishEvents(domainEvents);
+            await eventBus.PublishEvents(domainEvents).ConfigureAwait(false);
         }
 
-        public void ReplayEventsForHandlerType(Type handlerType, DateTime startDate, DateTime endDate)
+        public async Task ReplayEventsForHandlerType(Type handlerType, DateTime startDate, DateTime endDate)
         {
             runtime.Start();
 
@@ -41,10 +42,10 @@ namespace SimpleCqrs.Utilites
             var eventStore = serviceLocator.Resolve<IEventStore>();
             var domainEventTypes = GetDomainEventTypesHandledByHandler(handlerType);
 
-            var domainEvents = eventStore.GetEventsByEventTypes(domainEventTypes, startDate, endDate);
+            var domainEvents = await eventStore.GetEventsByEventTypes(domainEventTypes, startDate, endDate).ConfigureAwait(false);
             var eventBus = new LocalEventBus(new[] {handlerType}, new DomainEventHandlerFactory(serviceLocator));
 
-            eventBus.PublishEvents(domainEvents);
+            await eventBus.PublishEvents(domainEvents).ConfigureAwait(false);
         }
 
         private static IEnumerable<Type> GetDomainEventTypesHandledByHandler(Type handlerType)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using SimpleCqrs.Eventing;
 
 namespace SimpleCqrs.EventStore.File
@@ -22,9 +23,9 @@ namespace SimpleCqrs.EventStore.File
             serializer = new DataContractSerializer(typeof(DomainEvent), domainEventDerivedTypes);
         }
 
-        public IEnumerable<DomainEvent> GetEvents(Guid aggregateRootId, int startSequence)
+        public async Task<IEnumerable<DomainEvent>> GetEvents(Guid aggregateRootId, int startSequence)
         {
-            var eventInfos = GetEventInfosForAggregateRoot(aggregateRootId, startSequence);
+            var eventInfos = await GetEventInfosForAggregateRoot(aggregateRootId, startSequence).ConfigureAwait(false);
             var domainEvents = new List<DomainEvent>();
             foreach (var eventInfo in eventInfos)
             {
@@ -38,7 +39,12 @@ namespace SimpleCqrs.EventStore.File
             return domainEvents;
         }
 
-        public void Insert(IEnumerable<DomainEvent> domainEvents)
+        public Task<DomainEvent> GetEvent(Guid aggregateRootId, int sequence)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task Insert(IEnumerable<DomainEvent> domainEvents)
         {
             foreach (var domainEvent in domainEvents)
             {
@@ -54,22 +60,27 @@ namespace SimpleCqrs.EventStore.File
             }
         }
 
-        public IEnumerable<DomainEvent> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes)
+        public async Task<IEnumerable<DomainEvent>> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes)
         {
             throw new NotImplementedException();
         }
 
-        public IEnumerable<DomainEvent> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes, Guid aggregateRootId)
+        public async Task<IEnumerable<DomainEvent>> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes, Guid aggregateRootId)
         {
             throw new NotImplementedException();
         }
 
-        public IEnumerable<DomainEvent> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes, DateTime startDate, DateTime endDate)
+        public Task<IEnumerable<DomainEvent>> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes, Guid aggregateRootId, DateTime startDate, DateTime endDate)
         {
             throw new NotImplementedException();
         }
 
-        private IEnumerable<dynamic> GetEventInfosForAggregateRoot(Guid aggregateRootId, int startSequence)
+        public async Task<IEnumerable<DomainEvent>> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes, DateTime startDate, DateTime endDate)
+        {
+            throw new NotImplementedException();
+        }
+
+        private async Task<IEnumerable<dynamic>> GetEventInfosForAggregateRoot(Guid aggregateRootId, int startSequence)
         {
             var aggregateRootDirectory = Path.Combine(baseDirectory, aggregateRootId.ToString());
             return from filePath in Directory.GetFiles(aggregateRootDirectory)

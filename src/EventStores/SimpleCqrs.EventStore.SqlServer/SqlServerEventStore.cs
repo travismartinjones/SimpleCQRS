@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using ServiceStack.Text;
 using SimpleCqrs.Eventing;
 
@@ -32,7 +33,7 @@ namespace SimpleCqrs.EventStore.SqlServer
             }
         }
 
-        public IEnumerable<DomainEvent> GetEvents(Guid aggregateRootId, int startSequence)
+        public async Task<IEnumerable<DomainEvent>> GetEvents(Guid aggregateRootId, int startSequence)
         {
             var events = new List<DomainEvent>();
             using (var connection = new SqlConnection(configuration.ConnectionString))
@@ -60,7 +61,12 @@ namespace SimpleCqrs.EventStore.SqlServer
             return events;
         }
 
-        public void Insert(IEnumerable<DomainEvent> domainEvents)
+        public async Task<DomainEvent> GetEvent(Guid aggregateRootId, int sequence)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task Insert(IEnumerable<DomainEvent> domainEvents)
         {
             var sql = new StringBuilder();
             foreach (var domainEvent in domainEvents)
@@ -79,7 +85,7 @@ namespace SimpleCqrs.EventStore.SqlServer
             }
         }
 
-        public IEnumerable<DomainEvent> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes)
+        public async Task<IEnumerable<DomainEvent>> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes)
         {
             var events = new List<DomainEvent>();
 
@@ -104,12 +110,17 @@ namespace SimpleCqrs.EventStore.SqlServer
             return events;
         }
 
-        public IEnumerable<DomainEvent> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes, Guid aggregateRootId)
+        public async Task<IEnumerable<DomainEvent>> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes, Guid aggregateRootId)
         {
             throw new NotImplementedException();
         }
 
-        public IEnumerable<DomainEvent> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes, DateTime startDate, DateTime endDate)
+        public Task<IEnumerable<DomainEvent>> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes, Guid aggregateRootId, DateTime startDate, DateTime endDate)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<IEnumerable<DomainEvent>> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes, DateTime startDate, DateTime endDate)
         {
             throw new NotImplementedException();
         }

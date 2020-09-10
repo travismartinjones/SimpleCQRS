@@ -17,6 +17,14 @@ namespace SimpleCqrs.Eventing
                     select domainEvent).ToList();
         }
 
+        public async Task<DomainEvent> GetEvent(Guid aggregateRootId, int sequence)
+        {
+            return (from domainEvent in storedDomainEvents
+                where domainEvent.AggregateRootId == aggregateRootId
+                where domainEvent.Sequence == sequence
+                select domainEvent).FirstOrDefault();
+        }
+
         public async Task Insert(IEnumerable<DomainEvent> domainEvents)
         {
             storedDomainEvents.AddRange(domainEvents);

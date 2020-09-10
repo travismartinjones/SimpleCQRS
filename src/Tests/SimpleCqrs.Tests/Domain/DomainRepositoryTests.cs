@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using AutoMoq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -21,23 +22,23 @@ namespace SimpleCqrs.Core.Tests.Domain
         }
 
         [TestMethod]
-        public void EventsAreRetrievedFromTheEventStoreAndAppliedToTheAggregateRootWhenGetByIdIsCalled()
+        public async Task EventsAreRetrievedFromTheEventStoreAndAppliedToTheAggregateRootWhenGetByIdIsCalled()
         {
             var repository = CreateDomainRepository();
             var aggregateRootId = new Guid();
             var domainEvents = new List<MyTestEvent> {new MyTestEvent(), new MyTestEvent(), new MyTestEvent()};
 
             mocker.GetMock<IEventStore>()
-                .Setup(eventStore => eventStore.GetEvents(aggregateRootId, 0))
+                .Setup(eventStore => eventStore.GetEvents(aggregateRootId, 0).Result)
                 .Returns(domainEvents);
 
-            var aggregateRoot = repository.GetById<MyTestAggregateRoot>(aggregateRootId);
+            var aggregateRoot = await repository.GetById<MyTestAggregateRoot>(aggregateRootId).ConfigureAwait(false);
 
             Assert.AreEqual(3, aggregateRoot.MyTestEventHandleCount);
         }
 
         [TestMethod]
-        public void UncommittedEventsAreInsertedIntoTheEventStoreWhenSaved()
+        public async Task UncommittedEventsAreInsertedIntoTheEventStoreWhenSaved()
         {
             var repository = CreateDomainRepository();
             var aggregateRoot = new MyTestAggregateRoot();
@@ -47,14 +48,14 @@ namespace SimpleCqrs.Core.Tests.Domain
             aggregateRoot.Apply(domainEvents[1]);
             aggregateRoot.Apply(domainEvents[2]);
 
-            repository.Save(aggregateRoot);
+            await repository.Save(aggregateRoot).ConfigureAwait(false);
 
             mocker.GetMock<IEventStore>()
                 .Verify(eventStore => eventStore.Insert(It.Is<IEnumerable<DomainEvent>>(events => events.All(domainEvents.Contains))), Times.Once());
         }
 
         [TestMethod]
-        public void UncommittedEventsArePublishedToTheEventBusWhenSaved()
+        public async Task UncommittedEventsArePublishedToTheEventBusWhenSaved()
         {
             var repository = CreateDomainRepository();
             var aggregateRoot = new MyTestAggregateRoot();
@@ -64,14 +65,14 @@ namespace SimpleCqrs.Core.Tests.Domain
             aggregateRoot.Apply(domainEvents[1]);
             aggregateRoot.Apply(domainEvents[2]);
 
-            repository.Save(aggregateRoot);
+            await repository.Save(aggregateRoot).ConfigureAwait(false);
 
             mocker.GetMock<IEventBus>()
                 .Verify(eventBus => eventBus.PublishEvents(It.IsAny<IEnumerable<DomainEvent>>()), Times.Once());
         }
 
         [TestMethod]
-        public void UncommittedEventsShouldBeCommited()
+        public async Task UncommittedEventsShouldBeCommited()
         {
             var repository = CreateDomainRepository();
             var aggregateRoot = new MyTestAggregateRoot();
@@ -79,22 +80,23 @@ namespace SimpleCqrs.Core.Tests.Domain
             aggregateRoot.Apply(new MyTestEvent());
             aggregateRoot.Apply(new MyTestEvent());
 
-            repository.Save(aggregateRoot);
+            await repository.Save(aggregateRoot).ConfigureAwait(false);
 
             Assert.AreEqual(0, aggregateRoot.UncommittedEvents.Count);
         }
 
 		[TestMethod]
-		public void GettingExistingByIdThrowsExceptionWhenNotFound()
+		public async Task GettingExistingByIdThrowsExceptionWhenNotFound()
 		{
 			var eventStore = new Mock<IEventStore>().Object;
 			var snapshotStore = new Mock<ISnapshotStore>().Object;
 			var eventBus = new Mock<IEventBus>().Object;
-			var repository = new DomainRepository(eventStore, snapshotStore, eventBus);
+			var eventTrackingService = new Mock<IEventTrackingService>().Object;
+			var repository = new DomainRepository(eventStore, snapshotStore, eventBus, eventTrackingService);
 			var aggregateRootId = Guid.NewGuid();
 
 			var exception = CustomAsserts.Throws<AggregateRootNotFoundException>(() =>
-				repository.GetExistingById<MyTestAggregateRoot>(aggregateRootId)
+				repository.GetExistingById<MyTestAggregateRoot>(aggregateRootId).Wait()
 				);
 
 			Assert.AreEqual(aggregateRootId, exception.AggregateRootId);
@@ -102,15 +104,16 @@ namespace SimpleCqrs.Core.Tests.Domain
 		}
 
 		[TestMethod]
-		public void GettingExistingByIdReturnsAggregateWhenFound()
+		public async Task GettingExistingByIdReturnsAggregateWhenFound()
 		{
 			var aggregateRootId = Guid.NewGuid();
 
 			var eventStore = new Mock<IEventStore>();
-			eventStore.Setup(x => x.GetEvents(aggregateRootId, It.IsAny<int>())).Returns(new[] { new MyTestEvent() });
+			eventStore.Setup(x => x.GetEvents(aggregateRootId, It.IsAny<int>()).Result).Returns(new[] { new MyTestEvent() });
 			var snapshotStore = new Mock<ISnapshotStore>().Object;
 			var eventBus = new Mock<IEventBus>().Object;
-			var repository = new DomainRepository(eventStore.Object, snapshotStore, eventBus);
+            var eventTrackingService = new Mock<IEventTrackingService>().Object;
+			var repository = new DomainRepository(eventStore.Object, snapshotStore, eventBus, eventTrackingService);
 
 			var fetchedAggregateRoot = repository.GetExistingById<MyTestAggregateRoot>(aggregateRootId);
 

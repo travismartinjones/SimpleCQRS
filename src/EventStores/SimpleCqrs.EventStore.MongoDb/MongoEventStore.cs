@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using MongoDB;
 using MongoDB.Configuration;
 using MongoDB.Configuration.Builders;
@@ -38,7 +39,7 @@ namespace SimpleCqrs.EventStore.MongoDb
             return configurationBuilder.BuildConfiguration();
         }
 
-        public IEnumerable<DomainEvent> GetEvents(Guid aggregateRootId, int startSequence)
+        public async Task<IEnumerable<DomainEvent>> GetEvents(Guid aggregateRootId, int startSequence)
         {
             using(var mongo = new Mongo(configuration))
             {
@@ -54,7 +55,23 @@ namespace SimpleCqrs.EventStore.MongoDb
             }
         }
 
-        public void Insert(IEnumerable<DomainEvent> domainEvents)
+        public async Task<DomainEvent> GetEvent(Guid aggregateRootId, int sequence)
+        {
+            using(var mongo = new Mongo(configuration))
+            {
+                mongo.Connect();
+
+                var database = mongo.GetDatabase(databaseName);
+                var eventsCollection = database.GetCollection<DomainEvent>("events").Linq();
+
+                return (from domainEvent in eventsCollection
+                    where domainEvent.AggregateRootId == aggregateRootId
+                    where domainEvent.Sequence == sequence
+                    select domainEvent).FirstOrDefault();
+            }
+        }
+
+        public async Task Insert(IEnumerable<DomainEvent> domainEvents)
         {
             using(var mongo = new Mongo(configuration))
             {
@@ -66,7 +83,7 @@ namespace SimpleCqrs.EventStore.MongoDb
             }
         }
 
-        public IEnumerable<DomainEvent> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes)
+        public async Task<IEnumerable<DomainEvent>> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes)
         {
             using(var mongo = new Mongo(configuration))
             {
@@ -81,7 +98,7 @@ namespace SimpleCqrs.EventStore.MongoDb
             }
         }
 
-        public IEnumerable<DomainEvent> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes, Guid aggregateRootId)
+        public async Task<IEnumerable<DomainEvent>> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes, Guid aggregateRootId)
         {
             using (var mongo = new Mongo(configuration))
             {
@@ -100,7 +117,12 @@ namespace SimpleCqrs.EventStore.MongoDb
             }
         }
 
-        public IEnumerable<DomainEvent> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes, DateTime startDate, DateTime endDate)
+        public Task<IEnumerable<DomainEvent>> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes, Guid aggregateRootId, DateTime startDate, DateTime endDate)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<IEnumerable<DomainEvent>> GetEventsByEventTypes(IEnumerable<Type> domainEventTypes, DateTime startDate, DateTime endDate)
         {
             using(var mongo = new Mongo(configuration))
             {
@@ -119,7 +141,7 @@ namespace SimpleCqrs.EventStore.MongoDb
             }
         }
 
-        public IEnumerable<DomainEvent> GetEventsBySelector(Document selector)
+        public async Task<IEnumerable<DomainEvent>> GetEventsBySelector(Document selector)
         {
             using(var mongo = new Mongo(configuration))
             {
@@ -131,7 +153,7 @@ namespace SimpleCqrs.EventStore.MongoDb
             }
         }
 
-        public IEnumerable<DomainEvent> GetEventsBySelector(Document selector, int skip, int limit)
+        public async Task<IEnumerable<DomainEvent>> GetEventsBySelector(Document selector, int skip, int limit)
         {
             using(var mongo = new Mongo(configuration))
             {

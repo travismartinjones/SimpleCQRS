@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Xsl;
 using SimpleCqrs.Eventing;
 
 namespace SimpleCqrs.Domain
@@ -9,14 +10,20 @@ namespace SimpleCqrs.Domain
     public class DomainRepository : IDomainRepository
     {
         private readonly IEventBus eventBus;
+        private readonly IEventTrackingService eventTrackingService;
         private readonly IEventStore eventStore;
         private readonly ISnapshotStore snapshotStore;
 
-        public DomainRepository(IEventStore eventStore, ISnapshotStore snapshotStore, IEventBus eventBus)
+        public DomainRepository(
+            IEventStore eventStore, 
+            ISnapshotStore snapshotStore, 
+            IEventBus eventBus,
+            IEventTrackingService eventTrackingService)
         {
             this.eventStore = eventStore;
             this.snapshotStore = snapshotStore;
             this.eventBus = eventBus;
+            this.eventTrackingService = eventTrackingService;
         }
 
         public virtual async Task<TAggregateRoot> GetById<TAggregateRoot>(Guid aggregateRootId) where TAggregateRoot : AggregateRoot, new()
@@ -49,9 +56,20 @@ namespace SimpleCqrs.Domain
         {
             var domainEvents = aggregateRoot.UncommittedEvents;
 
+            var hungEvents = (await eventTrackingService.GetHungEvents().ConfigureAwait(false)).ToList();
+            if (hungEvents.Any())
+            {
+                await eventBus.PublishEvents(hungEvents).ConfigureAwait(false);
+                await eventTrackingService.ClearHungEvents().ConfigureAwait(false);
+            }
+
+            await eventTrackingService.StartTracking(domainEvents).ConfigureAwait(false);
+
             await eventStore.Insert(domainEvents).ConfigureAwait(false);
             await eventBus.PublishEvents(domainEvents).ConfigureAwait(false);
             
+            await eventTrackingService.StopTracking(domainEvents).ConfigureAwait(false);
+
             aggregateRoot.CommitEvents();
 
             await SaveSnapshot(aggregateRoot).ConfigureAwait(false);
@@ -66,8 +84,19 @@ namespace SimpleCqrs.Domain
 				domainEvents.AddRange(aggregateRoot.UncommittedEvents);
 			}
 
+            var hungEvents = (await eventTrackingService.GetHungEvents().ConfigureAwait(false)).ToList();
+            if (hungEvents.Any())
+            {
+                await eventBus.PublishEvents(hungEvents).ConfigureAwait(false);
+                await eventTrackingService.ClearHungEvents().ConfigureAwait(false);
+            }
+
+            await eventTrackingService.StartTracking(domainEvents).ConfigureAwait(false);
+
 			await eventStore.Insert(domainEvents).ConfigureAwait(false);
 			await eventBus.PublishEvents(domainEvents).ConfigureAwait(false);
+
+            await eventTrackingService.StopTracking(domainEvents).ConfigureAwait(false);
 
 			foreach (var aggregateRoot in roots)
 			{

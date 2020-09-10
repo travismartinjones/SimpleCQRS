@@ -1,6 +1,7 @@
 ﻿﻿using System;
 using System.Collections.Generic;
-using AutoMoq;
+ using System.Threading.Tasks;
+ using AutoMoq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SimpleCqrs.Eventing;
@@ -90,7 +91,7 @@ namespace SimpleCqrs.Core.Tests.Events
 
     public class MyTestEventHandler : IHandleDomainEvents<MyTestEvent>
     {
-        public void Handle(MyTestEvent domainEvent)
+        public async Task Handle(MyTestEvent domainEvent)
         {
             domainEvent.Result = 101;
             domainEvent.MyTestEventHandlerWasCalled = true;
@@ -99,12 +100,12 @@ namespace SimpleCqrs.Core.Tests.Events
 
     public class MyTest2EventHandler : IHandleDomainEvents<MyTestEvent>, IHandleDomainEvents<MyTest2Event>
     {
-        public void Handle(MyTest2Event domainEvent)
+        public async Task Handle(MyTest2Event domainEvent)
         {
             domainEvent.Result = 45;
         }
 
-        public void Handle(MyTestEvent domainEvent)
+        public async Task Handle(MyTestEvent domainEvent)
         {
             domainEvent.Result = 102;
             domainEvent.MyTest2EventHandlerWasCalled = true;
