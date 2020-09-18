@@ -26,10 +26,10 @@ namespace SimpleCqrs.Domain
             this.eventTrackingService = eventTrackingService;
         }
 
-        public virtual async Task<TAggregateRoot> GetById<TAggregateRoot>(Guid aggregateRootId) where TAggregateRoot : AggregateRoot, new()
+        public virtual async Task<TAggregateRoot> GetById<TAggregateRoot>(Guid aggregateRootId, bool isSnapshotUsed = true) where TAggregateRoot : AggregateRoot, new()
         {
             var aggregateRoot = new TAggregateRoot();
-            var snapshot = await GetSnapshotFromSnapshotStore(aggregateRootId).ConfigureAwait(false);
+            var snapshot = isSnapshotUsed ? await GetSnapshotFromSnapshotStore(aggregateRootId).ConfigureAwait(false) : null;
             var lastEventSequence = snapshot == null || !(aggregateRoot is ISnapshotOriginator) ? 0 : snapshot.LastEventSequence;
             var domainEvents = (await eventStore.GetEvents(aggregateRootId, lastEventSequence).ConfigureAwait(false)).ToArray();
 
@@ -42,9 +42,9 @@ namespace SimpleCqrs.Domain
             return aggregateRoot;
         }
 
-        public virtual async Task<TAggregateRoot> GetExistingById<TAggregateRoot>(Guid aggregateRootId) where TAggregateRoot : AggregateRoot, new()
+        public virtual async Task<TAggregateRoot> GetExistingById<TAggregateRoot>(Guid aggregateRootId, bool isSnapshotUsed = true) where TAggregateRoot : AggregateRoot, new()
         {
-            var aggregateRoot = await GetById<TAggregateRoot>(aggregateRootId).ConfigureAwait(false);
+            var aggregateRoot = await GetById<TAggregateRoot>(aggregateRootId, isSnapshotUsed).ConfigureAwait(false);
 
             if(aggregateRoot == null)
                 throw new AggregateRootNotFoundException(aggregateRootId, typeof(TAggregateRoot));
